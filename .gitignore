@@ -1,4 +1,5 @@
 venv/
-data/
+data/RAW_recipes.csv
 .DS_Store
 __pycache__/
+neo4j_data/

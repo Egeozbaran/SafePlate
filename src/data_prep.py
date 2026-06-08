@@ -16,6 +16,7 @@ def clean_text(text):
 def build_allergen_dict(allergies_file):
     df_allergies = pd.read_csv(allergies_file)
     word_allergen_counts = defaultdict(lambda: defaultdict(int))
+    word_total_counts = defaultdict(int)
     
     # Words to ignore because they are too common and don't indicate an allergen
     stopwords = {'water', 'salt', 'sugar', 'natural', 'flavor', 'extract', 'acid', 'syrup', 'oil', 'sodium', 'contains', 'less', 'than', 'of', 'and', 'or', 'with', 'organic', 'powder', 'color'}
@@ -37,18 +38,22 @@ def build_allergen_dict(allergies_file):
         cleaned_allergens = [re.sub(r'[^a-z0-9\s]', '', a.lower()).strip() for a in allergens_list]
         cleaned_allergens = [a for a in cleaned_allergens if a]
         
-        if cleaned_allergens:
-            words = ingredient.split()
-            for w in words:
-                if len(w) > 2 and w not in stopwords:
+        words = set(ingredient.split()) # Use set to avoid double-counting in the same row
+        for w in words:
+            if len(w) > 2 and w not in stopwords:
+                word_total_counts[w] += 1
+                if cleaned_allergens:
                     for a in cleaned_allergens:
                         word_allergen_counts[w][a] += 1
                         
-    # Create final keyword rules: if a word is strongly associated with an allergen
+    # Create final keyword rules using a Confidence Ratio
     keyword_rules = defaultdict(set)
     for w, allergen_counts in word_allergen_counts.items():
+        total_appearances = word_total_counts[w]
         for a, count in allergen_counts.items():
-            if count >= 2: # Heuristic threshold: the word must map to an allergen at least twice
+            confidence = count / total_appearances
+            # Must appear at least 2 times AND have at least 20% confidence
+            if count >= 2 and confidence >= 0.20: 
                 keyword_rules[w].add(a)
                 
     return keyword_rules
