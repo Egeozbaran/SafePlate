@@ -21,6 +21,14 @@ SafePlate utilizes a hybrid Neuro-Symbolic Artificial Intelligence architecture:
 * **Neuro-Symbolic Pipeline:** Merges deterministic Cypher reasoning with Machine Learning similarity search (Cosine Similarity on TransE Embeddings).
 * **Interactive UI:** A real-time, responsive web interface built with Streamlit that queries the Neo4j database and PyKEEN models to serve live dietary assessments and AI recommendations.
 
+## Data Sources & Open Source Reproducibility
+
+To ensure this repository is 100% open-source and reproducible without requiring users to download massive raw files, the repository includes a pre-processed subset of the data:
+* **`allergies_10k.csv`**: A Kaggle taxonomy mapping ingredients to medical allergens.
+* **`recipes_subset_5k.csv`**: A curated 5,000-recipe subset extracted from the massive 280MB+ Food.com Kaggle dataset.
+
+By providing this 5K subset directly in the `/data` folder, anyone who clones this repository can instantly run the full pipeline without hitting GitHub's 100MB file limit or requiring external API keys. If you wish to run the pipeline on the full 500,000 recipe dataset, simply download the raw CSV from Kaggle and point `data_prep.py` to it.
+
 ## Setup & Installation
 
 ### Prerequisites
