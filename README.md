@@ -1,74 +1,81 @@
-# SafePlate: Inferring Dietary Safety through Ingredient-Allergen Knowledge Graphs 🍽️🛡️
+# SafePlate: Inferring Dietary Safety through Ingredient-Allergen Knowledge Graphs
 
 ![Neo4j](https://img.shields.io/badge/Neo4j-018bff?style=for-the-badge&logo=neo4j&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 
-SafePlate is an advanced Knowledge Graph (KG) reasoning engine designed to automatically infer dietary safety and detect "hidden" allergens in unlabeled recipes. Built for the TU Wien Knowledge Graph Course, this project transforms flat recipe data into a multi-tiered graph (`Meal -> Ingredient -> Allergen`) to support multi-hop reasoning.
+SafePlate is an advanced Knowledge Graph reasoning engine designed to automatically infer dietary safety and detect hidden allergens in unlabeled recipes. Developed for the TU Wien Knowledge Graph Course, this project transforms unstructured recipe data into a multi-tiered graph ontology (`Meal -> Ingredient -> Allergen`) to support explicit multi-hop reasoning and implicit latent space clustering.
 
-## 🌟 Key Features
+## Project Overview
 
-* **Advanced Entity Resolution:** Uses a probabilistic Confidence Scoring algorithm to accurately map unstructured, human-written recipe ingredients to strict medical allergen taxonomies, filtering out noise from highly processed packaged foods.
-* **Multi-Hop Logical Reasoning:** Automatically infers recipe safety based on biological hierarchies (e.g., *Pancakes -> contains -> Milk -> is_a -> Dairy*).
-* **Safe Substitutions (Coming Soon):** Utilizes Knowledge Graph Embeddings (KGE) via PyKEEN to recommend structurally similar ingredients that do not share the user's allergen profile.
+SafePlate utilizes a hybrid Neuro-Symbolic Artificial Intelligence architecture:
+1. **Symbolic AI (Explicit Rules):** Uses Neo4j and the Cypher query language to traverse the graph and infer deterministic logical rules (e.g., if a meal contains an ingredient, and that ingredient belongs to an allergen taxonomy, the meal is marked as `UNSAFE_FOR` the user).
+2. **Neural ML (Implicit Patterns):** Uses PyKEEN (TransE) to project the graph's topology into a high-dimensional mathematical latent space. This allows the system to discover structurally identical, safe substitute meals when a user's selected recipe violates their dietary restrictions.
 
-## 🏗️ Architecture & Data Pipeline
+## Key Technical Features
 
-1. **Data Preparation (`src/data_prep.py`):** Ingests raw `RAW_recipes.csv` and `allergies_10k.csv`. Performs data cleaning, tokenization, and Entity Resolution using word probability confidence ratios. Outputs 5 clean CSVs representing Nodes and Edges.
-2. **Graph Database (`docker-compose.yml`):** Spins up an official Neo4j instance via Docker, volume-mapped to the local `data/` directory for high-speed bulk ingestion.
-3. **Graph Construction (`src/graph_build.py`):** Uses the official Neo4j Python driver to execute Cypher queries that build the schema, create indexes, and load the multi-tiered graph.
+* **Statistical Entity Resolution:** Implements a probabilistic confidence scoring algorithm to automatically map raw, unstructured recipe ingredients to a strict medical allergen taxonomy. The algorithm precision-filters noise (e.g., preventing "beef" from falsely triggering a dairy allergy) while allowing exact string overrides for ambiguous composites (e.g., mapping "flour" to Wheat, while safely ignoring "almond flour").
+* **Automated Graph Ingestion:** A robust Python pipeline that cleans raw CSVs, extracts nodes/edges, and streams them directly into a containerized Neo4j database.
+* **Neuro-Symbolic Pipeline:** Merges deterministic Cypher reasoning with Machine Learning similarity search (Cosine Similarity on TransE Embeddings).
+* **Interactive UI:** A real-time, responsive web interface built with Streamlit that queries the Neo4j database and PyKEEN models to serve live dietary assessments and AI recommendations.
 
-## 🚀 Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
 * Python 3.11+
-* Docker Desktop
+* Docker Desktop (Required for Neo4j)
 
 ### 1. Environment Setup
 ```bash
+# Create and activate a virtual environment
 python3 -m venv venv
 source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Generate the Data
+### 2. Start the Graph Database
 ```bash
-python src/data_prep.py
-```
-
-### 3. Start Neo4j Database
-```bash
+# Start the Neo4j instance in the background
 docker compose up -d
 ```
-*Wait ~10 seconds for the Neo4j engine to fully boot up.*
+*Note: Wait approximately 10 seconds for the database engine to fully initialize before proceeding.*
 
-### 4. Build the Knowledge Graph
+### 3. Run the Backend Pipeline
+The entire backend architecture can be built using a single provided shell script. This script will sequentially run data preparation, graph construction, Cypher reasoning, and PyKEEN embedding training.
 ```bash
-python src/graph_build.py
+# Execute the pipeline
+./run_pipeline.sh
 ```
 
-### 5. Visualize the Graph
-Open your web browser and navigate to `http://localhost:7474`.
-* **Username:** `neo4j`
-* **Password:** `safeplate123`
-
-Run the following Cypher query to see a sample of the graph:
-```cypher
-MATCH path=(m:Meal)-[:CONTAINS]->(i:Ingredient)-[:IS_A]->(a:Allergen)
-RETURN path LIMIT 25
+### 4. Launch the Application
+Once the pipeline has completed and the models are trained, launch the interactive user interface:
+```bash
+streamlit run src/app.py
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 SafePlate/
-├── data/                  # Contains raw datasets and generated Node/Edge CSVs
-├── instructions/          # Project requirements and Learning Outcomes (LO) guidelines
+├── data/                  # Raw Kaggle datasets, generated CSVs, and PyKEEN TSVs
+├── instructions/          # Project academic requirements and Learning Outcomes
+├── models/                # Saved TransE neural embeddings
+├── neo4j_data/            # Persistent Docker volume for the Graph Database
 ├── src/
-│   ├── data_prep.py       # Data cleaning and Entity Resolution logic
-│   └── graph_build.py     # Neo4j connection and Cypher ingestion script
-├── docker-compose.yml     # Neo4j Docker configuration
+│   ├── data_prep.py       # Data cleaning and probabilistic Entity Resolution
+│   ├── graph_build.py     # Neo4j database initialization and population
+│   ├── reasoning_engine.py# Cypher logic for multi-hop graph inference
+│   ├── train_embeddings.py# PyKEEN ML training script for vector representations
+│   └── app.py             # Streamlit User Interface
+├── docker-compose.yml     # Neo4j container configuration
+├── run_pipeline.sh        # Master execution script for the backend
 ├── requirements.txt       # Python dependencies
-├── progress.md            # Detailed log of completed phases and LO mappings
-└── README.md              # Project overview
+└── README.md              # Project documentation
 ```
+
+## Developer
+Developed by Ege Ozbaran for the TU Wien Knowledge Graphs course.

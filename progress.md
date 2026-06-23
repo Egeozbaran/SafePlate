@@ -27,9 +27,9 @@ This document tracks the step-by-step progress, decisions made, and milestones a
 * **[COMPLETED]** Write a new Python script (`src/graph_build.py`) to connect to Neo4j using the official driver and push the generated nodes and edges using Cypher queries. (Fulfills **LO5: Architectures**)
 
 ## Phase 4: Reasoning & Services (LO2, LO6, LO1, LO11)
-* **[TO DO]** Logical Knowledge & Scalable Reasoning: Write Cypher queries to deduce if a meal is unsafe based on the rule `Meal(m) ∧ contains(m, i) ∧ is_allergen(i, a) → is_unsafe(m, a)` and run it across the graph. (Fulfills **LO2: Logical Knowledge** and **LO6: Scalable Reasoning** - Focus Areas)
-* **[TO DO]** KG Embeddings: Implement graph embeddings (e.g., PyKEEN or Node2Vec) to find structurally similar, safe ingredient substitutes. (Fulfills **LO1: KG Embeddings**)
-* **[TO DO]** Services: Build a query interface for "Is this safe?" and "Suggest a substitute". (Fulfills **LO11: Services**)
+* **[COMPLETED]** Logical Knowledge & Scalable Reasoning: Wrote a Python reasoning engine (`src/reasoning_engine.py`) executing a Cypher query to deduce if a meal is unsafe based on the rule `Meal(m) ∧ contains(m, i) ∧ is_allergen(i, a) → is_unsafe(m, a)` and dynamically drew new `UNSAFE_FOR` edges across the entire graph. (Fulfills **LO2: Logical Knowledge** and **LO6: Scalable Reasoning** - Focus Areas)
+* **[COMPLETED]** KG Embeddings: Wrote `src/train_embeddings.py` to extract `CONTAINS` and `IS_A` edges into TSV triples. Trained a PyKEEN `TransE` model over 50 epochs to learn mathematical vector representations of the nodes and relations. Verified that the model successfully groups structurally similar baking ingredients (like flour, sugar, and vegetable oil) near 'butter'. (Fulfills **LO1: KG Embeddings**)
+* **[COMPLETED]** Services: Built an interactive pure-Python web dashboard using Streamlit (`src/app.py`). It allows users to search the 5,000-recipe catalog using a dropdown, select their allergies, instantly query Neo4j for safety violations, and receive PyKEEN-powered safe substitute recommendations via heuristic post-filtering. (Fulfills **LO11: Services**)
 
 ## Phase 5: Portfolio & Documentation (LO8, LO9, LO10, LO12)
 * **[TO DO]** Document how the system dynamically updates with new recipes. (Fulfills **LO8: KG Evolution**)

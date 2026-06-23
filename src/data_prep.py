@@ -18,8 +18,8 @@ def build_allergen_dict(allergies_file):
     word_allergen_counts = defaultdict(lambda: defaultdict(int))
     word_total_counts = defaultdict(int)
     
-    # Words to ignore because they are too common and don't indicate an allergen
-    stopwords = {'water', 'salt', 'sugar', 'natural', 'flavor', 'extract', 'acid', 'syrup', 'oil', 'sodium', 'contains', 'less', 'than', 'of', 'and', 'or', 'with', 'organic', 'powder', 'color'}
+    # Words to ignore because they are too common, don't indicate an allergen, or are false positives
+    stopwords = {'water', 'salt', 'sugar', 'natural', 'flavor', 'extract', 'acid', 'syrup', 'oil', 'sodium', 'contains', 'less', 'than', 'of', 'and', 'or', 'with', 'organic', 'powder', 'color', 'beef', 'chicken', 'pork', 'lamb', 'fish', 'meat', 'onion', 'garlic', 'sauce', 'sweet', 'ground', 'lean', 'extra', 'barbecue', 'bbq', 'spices'}
     
     # Iterate through the Kaggle taxonomy
     for _, row in df_allergies.iterrows():
@@ -52,8 +52,8 @@ def build_allergen_dict(allergies_file):
         total_appearances = word_total_counts[w]
         for a, count in allergen_counts.items():
             confidence = count / total_appearances
-            # Must appear at least 2 times AND have at least 20% confidence
-            if count >= 2 and confidence >= 0.20: 
+            # Must appear at least 2 times AND have at least 80% confidence
+            if count >= 2 and confidence >= 0.80: 
                 keyword_rules[w].add(a)
                 
     return keyword_rules
@@ -94,6 +94,16 @@ def process_recipes():
             
             # Entity Resolution / Matching
             matched_allergens = set()
+            
+            # --- Exact String Overrides ---
+            # "flour" is ambiguous because "almond flour" is gluten-free. 
+            # We catch plain wheat flours here without breaking safe alternatives.
+            if ing_clean in ['flour', 'all purpose flour', 'wheat flour', 'white flour', 'enriched flour', 'bread flour', 'cake flour', 'self rising flour']:
+                matched_allergens.update(['wheat', 'gluten'])
+                
+            if ing_clean in ['beer', 'ale', 'stout', 'lager']:
+                matched_allergens.update(['gluten'])
+                
             words = ing_clean.split()
             for w in words:
                 if w in keyword_rules:
