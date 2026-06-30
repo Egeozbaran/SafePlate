@@ -27,7 +27,7 @@ To ensure this repository is 100% open-source and reproducible without requiring
 * **`allergies_10k.csv`**: A Kaggle taxonomy mapping ingredients to medical allergens.
 * **`recipes_subset_5k.csv`**: A curated 5,000-recipe subset extracted from the massive 280MB+ Food.com Kaggle dataset.
 
-By providing this 5K subset directly in the `/data` folder, anyone who clones this repository can instantly run the full pipeline without hitting GitHub's 100MB file limit or requiring external API keys. If you wish to run the pipeline on the full 500,000 recipe dataset, simply download the raw CSV from Kaggle and point `data_prep.py` to it.
+By providing this 5K subset directly in the `/data` folder, anyone who clones this repository can instantly run the full pipeline without hitting GitHub's 100MB file limit or requiring external API keys. If you wish to run the pipeline on the full 500,000 recipe dataset, simply download the raw CSV from the [Kaggle Food.com Recipes Dataset](https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions) and point `data_prep.py` to it.
 
 ## Setup & Installation
 
@@ -70,7 +70,6 @@ streamlit run src/app.py
 ```text
 SafePlate/
 ├── data/                  # Raw Kaggle datasets, generated CSVs, and PyKEEN TSVs
-├── instructions/          # Project academic requirements and Learning Outcomes
 ├── models/                # Saved TransE neural embeddings
 ├── neo4j_data/            # Persistent Docker volume for the Graph Database
 ├── src/
